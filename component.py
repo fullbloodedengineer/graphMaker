@@ -50,12 +50,16 @@ class Node(QtWidgets.QGraphicsItem):
 
 class Box(Node):
     def __init__(self, **kwargs):
-        super(Pipe, self).__init__(**kwargs)
-        self.roundness = 0
+        super(Box, self).__init__(**kwargs)
+        self.roundness = 5
         self.x = 0
         self.y = 0
         self.w = 60
         self.h = 20
+
+    def boundingRect(self):
+        '''Return the bounding box of the item'''
+        return QtCore.QRectF(self.x,self.y,self.w,self.h)
 
     def paint(self, painter, option, widget):
         """Draw the Node's container rectangle."""
@@ -63,7 +67,7 @@ class Box(Node):
         painter.setPen(QtGui.QPen(QtCore.Qt.NoPen))
 
         bbox = self.boundingRect()
-        painter.drawRect(self.x,self.y,self.w,self.h,self.roundness,self.roundness)
+        painter.drawRoundedRect(self.x,self.y,self.w,self.h,self.roundness,self.roundness)
 
 
 class Pipe(Node):
@@ -72,7 +76,10 @@ class Pipe(Node):
         self.x1 = 0
         self.y1 = 0
         self.x2 = 100
-        self.y2 = 0
+        self.y2 = 50
+    def boundingRect(self):
+        '''Return the bounding box of the item'''
+        return QtCore.QRectF(self.x(),self.y(),self.x2-self.x1,self.y2-self.y1)
         
     def paint(self, painter, option, widget):
         """Draw the Node's container rectangle."""
