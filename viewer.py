@@ -85,10 +85,6 @@ class GridView(QtWidgets.QGraphicsView):
             self.prevPos = event.pos()
             self.setCursor(QtCore.Qt.SizeAllCursor)
         elif event.button() == QtCore.Qt.LeftButton:
-            if self.parent().MODIFIER: 
-                if self.parent().MODIFIER == QtCore.Qt.Key_A:
-                    self.parent()._createItem(self.getMouseScenePosition())
-            else:
                 self.setDragMode(QtWidgets.QGraphicsView.RubberBandDrag)
         super(GridView, self).mousePressEvent(event)
 
