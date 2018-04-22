@@ -88,7 +88,7 @@ class BuilderSpace(QtWidgets.QWidget):
                 item.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable,self.moveableItems)
 
     def _loadItem(self,clsName,item):
-        #clsName = item.pop('class',None)
+        clsName = item.get('class',None)
         if self.registeredCls.has_key(clsName):
             cls = self.registeredCls[clsName]
             print "Build a",clsName

@@ -1,7 +1,8 @@
 {
-    "Pipe": [
+    "Node": [
         {
-            "name": "Pipe2",
+            "class": "Pipe",
+            "name": "Pipe1",
             "x1": 0.0, 
             "y1": 0.0,
             "z1": 0.0,
@@ -12,6 +13,7 @@
             "innerRadius": 1.0
         }, 
         {
+            "class": "Pipe",
             "name": "Pipe2",
             "x1": 100.0, 
             "y1": 0.0,
@@ -21,10 +23,9 @@
             "z2": 0.0,
             "outerRadius": 3.0,
             "innerRadius": 1.0
-        }
-    ],
-    "Box": [
+        },
         {
+            "class": "Box",
             "name": "Box1",
             "x1": -10.0, 
             "y1": -10.0,

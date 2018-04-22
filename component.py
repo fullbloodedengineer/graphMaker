@@ -7,11 +7,10 @@ import uuid
 class Node(QtWidgets.QGraphicsItem):
     contextName = None
     def __init__(self, **kwargs):
-        #Harvest kwargs and then pass on
-        self.name = kwargs.pop("name",None)
-        self.uuid = kwargs.pop("uuid",None)
-        super(Node, self).__init__(**kwargs)
-
+        super(Node, self).__init__()
+        self.name = kwargs.get("name",None)
+        self.uuid = kwargs.get("uuid",None)
+        self.selected = False
         self.fillColor = QtGui.QColor("#B1C9C5")
         self.highlightColor = QtGui.QColor("#454545")
 
@@ -28,12 +27,18 @@ class Node(QtWidgets.QGraphicsItem):
         '''A placeholder overload'''
         super(Node, self).mouseMoveEvent(event)
 
+    def mouseDoubleClickEvent(self, event):
+        '''A placeholder overload'''
+        self.selected = not self.selected
+        super(Node, self).mouseMoveEvent(event)
+
     def highlight(self, toggle):
-        if toggle:
-            self._oldFillColor = self.fillColor
-            self.fillColor = self.highlightColor
-        else:
-            self.fillColor = self._oldFillColor
+        if not self.selected:
+            if toggle:
+                self._oldFillColor = self.fillColor
+                self.fillColor = self.highlightColor
+            else:
+                self.fillColor = self._oldFillColor
 
     def hoverEnterEvent(self, event):
         self.highlight(True)
@@ -53,13 +58,13 @@ class Box(Node):
     contextName = "Box"
     def __init__(self, **kwargs):
         #Harvest kwargs and then pass on
-        self.x = kwargs.pop("x1",0.0)
-        self.y = kwargs.pop("y1",0.0)
-        self.z = kwargs.pop("z1",0.0)
-        self.l = kwargs.pop("l",5.0)
-        self.w = kwargs.pop("w",5.0)
-        self.h = kwargs.pop("h",5.0)
-        self.roundness = kwargs.pop("roundness",5.0)
+        self.x = kwargs.get("x1",0.0)
+        self.y = kwargs.get("y1",0.0)
+        self.z = kwargs.get("z1",0.0)
+        self.l = kwargs.get("l",5.0)
+        self.w = kwargs.get("w",5.0)
+        self.h = kwargs.get("h",5.0)
+        self.roundness = kwargs.get("roundness",5.0)
         super(Box, self).__init__(**kwargs)
         #You can now change inherited things
         self.fillColor = QtGui.QColor("#676d39")
@@ -81,18 +86,17 @@ class Pipe(Node):
     contextName = "Pipe"
     def __init__(self, **kwargs):
         #Harvest kwargs and then pass on
-        self.x1 = kwargs.pop("x1",0.0)
-        self.y1 = kwargs.pop("y1",0.0)
-        self.z1 = kwargs.pop("z1",0.0)
-        self.x2 = kwargs.pop("x2",0.0)
-        self.y2 = kwargs.pop("y2",0.0)
-        self.z2 = kwargs.pop("z2",0.0)
-        self.outerRadius = kwargs.pop("outerRadius",5)
-        self.innerRadius = kwargs.pop("innerRadius",5)
+        self.x1 = kwargs.get("x1",0.0)
+        self.y1 = kwargs.get("y1",0.0)
+        self.z1 = kwargs.get("z1",0.0)
+        self.x2 = kwargs.get("x2",0.0)
+        self.y2 = kwargs.get("y2",0.0)
+        self.z2 = kwargs.get("z2",0.0)
+        self.outerRadius = kwargs.get("outerRadius",5)
+        self.innerRadius = kwargs.get("innerRadius",5)
         super(Pipe, self).__init__(**kwargs)
         #You can now change inherited things
         self.fillColor = QtGui.QColor("#778ab5")
-
 
     def boundingRect(self):
         '''Return the bounding box of the item'''
@@ -102,7 +106,6 @@ class Pipe(Node):
         """Draw the Node's container rectangle."""
         painter.setBrush(QtGui.QBrush(self.fillColor))
         painter.setPen(QtGui.QPen(self.fillColor,self.outerRadius))
-
 
         bbox = self.boundingRect()
         painter.drawEllipse(QtCore.QPointF(self.x1,self.y1),self.outerRadius+1,self.outerRadius+1)    
