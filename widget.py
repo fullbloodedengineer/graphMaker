@@ -25,14 +25,13 @@ class BuilderSpace(QtWidgets.QWidget):
         self.moveableItems = False
         self.currentNode = None
         self.registeredCls = {"Pipe":c.Pipe,"Box":c.Box}
+        self.scene.opacity = 1
+        self.scene.shadows = True
 
     def clearScene(self):
         '''Make a new scene and leave the old one for garbage collection'''
         self.scene = QtWidgets.QGraphicsScene()
         self.view.setScene(self.scene)
-
-    def _createItem(self,cls,pos):
-        pass
 
     def contextMenuEvent(self, event):
         """Show a menu to create registered Nodes."""
@@ -40,6 +39,9 @@ class BuilderSpace(QtWidgets.QWidget):
         menu = QtWidgets.QMenu(self)
         openFileAction = menu.addAction("Open File")
         openFileAction.triggered.connect(self._loadFile)
+
+        clearAllAction = menu.addAction("Clear Everything")
+        clearAllAction.triggered.connect(self.clearScene)
 
         viewMenu = menu.addMenu("View...")
         toggleGrid = viewMenu.addAction("Toggle BG Grid")
@@ -50,6 +52,9 @@ class BuilderSpace(QtWidgets.QWidget):
 
         itemLock = viewMenu.addAction("Toggle Object Lock")
         itemLock.triggered.connect(self._itemLock)
+
+        ghostLook = viewMenu.addAction("Toggle Ghosted Look")
+        ghostLook.triggered.connect(self._ghostItems)
 
         #nodeMenu = menu.addMenu("Nodes...")
         #for cls in  self.registeredCls:
@@ -84,16 +89,23 @@ class BuilderSpace(QtWidgets.QWidget):
         self.moveableItems = not self.moveableItems
         targetType = c.Node().type()
         for item in self.scene.items():
-            if item.type() == targetType:
-                item.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable,self.moveableItems)
+            item.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable,self.moveableItems)
 
     def _loadItem(self,clsName,item):
         clsName = item.get('class',None)
         if self.registeredCls.has_key(clsName):
             cls = self.registeredCls[clsName]
             print "Build a",clsName
+            print item
             _gitem = cls(**item)
-            _gitem.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable,self.moveableItems)
             self.scene.addItem(_gitem)
+            _gitem.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable,self.moveableItems)
 
-
+    def _ghostItems(self):
+        if self.scene.opacity < 1:
+            self.scene.opacity = 1
+            self.scene.shadows = True
+        else:
+            self.scene.opacity = 0.6
+            self.scene.shadows = False
+        self.update()

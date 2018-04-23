@@ -10,35 +10,30 @@ class Node(QtWidgets.QGraphicsItem):
         super(Node, self).__init__()
         self.name = kwargs.get("name",None)
         self.uuid = kwargs.get("uuid",None)
-        self.selected = False
-        self.fillColor = QtGui.QColor("#B1C9C5")
+        self.fillColor = self.baseColor = QtGui.QColor("#778ab5")
         self.highlightColor = QtGui.QColor("#454545")
 
         #Configuration.
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable)
-        self.setFlag(QtWidgets.QGraphicsItem.ItemIsMovable)
+        self.setFlag(QtWidgets.QGraphicsItem.ItemIsSelectable,True)
         self.setCursor(QtCore.Qt.SizeAllCursor)
-
         self.setAcceptHoverEvents(True)
         self.setAcceptTouchEvents(True)
         self.setAcceptDrops(True)
 
-    def mouseMoveEvent(self, event):
+    def mouseClickEvent(self, event):
         '''A placeholder overload'''
-        super(Node, self).mouseMoveEvent(event)
-
-    def mouseDoubleClickEvent(self, event):
-        '''A placeholder overload'''
-        self.selected = not self.selected
-        super(Node, self).mouseMoveEvent(event)
+        print "Click..."
+        if self.window().Alt_Key == QtCore.Qt.Key_Alt:       
+            print "Do something special"
+        super(Node, self).mouseClickEvent(event)
 
     def highlight(self, toggle):
-        if not self.selected:
-            if toggle:
-                self._oldFillColor = self.fillColor
-                self.fillColor = self.highlightColor
-            else:
-                self.fillColor = self._oldFillColor
+        #if not self.isSelected():
+        if toggle:
+            self._oldFillColor = self.fillColor
+            self.fillColor = self.highlightColor
+        else:
+            self.fillColor = self._oldFillColor
 
     def hoverEnterEvent(self, event):
         self.highlight(True)
@@ -57,57 +52,97 @@ class Node(QtWidgets.QGraphicsItem):
 class Box(Node):
     contextName = "Box"
     def __init__(self, **kwargs):
-        #Harvest kwargs and then pass on
-        self.x = kwargs.get("x1",0.0)
-        self.y = kwargs.get("y1",0.0)
-        self.z = kwargs.get("z1",0.0)
-        self.l = kwargs.get("l",5.0)
-        self.w = kwargs.get("w",5.0)
-        self.h = kwargs.get("h",5.0)
-        self.roundness = kwargs.get("roundness",5.0)
         super(Box, self).__init__(**kwargs)
+        #Harvest kwargs and then pass on
+        x,y,z = kwargs.get("point",[0.,0.,0.])
+        self.size = kwargs.get("size",[1.,1.,1.])
+        self.roundness = kwargs.get("roundness",5.0)
         #You can now change inherited things
         self.fillColor = QtGui.QColor("#676d39")
+        self.setPos(x,y)
 
     def boundingRect(self):
         '''Return the bounding box of the item'''
-        return QtCore.QRectF(self.x,self.y,self.l,self.w)
+        return QtCore.QRectF(QtCore.QPointF(),QtCore.QSizeF(self.size[0],self.size[1]))
 
     def paint(self, painter, option, widget):
         """Draw the Node's container rectangle."""
-        painter.setBrush(QtGui.QBrush(self.fillColor))
-        painter.setPen(QtGui.QPen(QtCore.Qt.NoPen))
-
+        _color = self.fillColor
+        _colorShadow = self.fillColor.darker(240)
+        sbox = QtCore.QRectF(QtCore.QPointF(2,3),QtCore.QSizeF(self.size[0],self.size[1]))
         bbox = self.boundingRect()
-        painter.drawRoundedRect(self.x,self.y,self.l,self.w,self.roundness,self.roundness)
+        painter.setOpacity(self.scene().opacity)
+        if self.scene().shadows:
+            painter.setBrush(QtGui.QBrush(_colorShadow))
+            painter.setPen(QtGui.QPen(QtCore.Qt.NoPen))
+            painter.drawRoundedRect(sbox ,self.roundness,self.roundness)
 
+        painter.setBrush(QtGui.QBrush(_color))
+        painter.setPen(QtGui.QPen(QtCore.Qt.NoPen))
+        painter.drawRoundedRect(bbox ,self.roundness,self.roundness)
+
+
+class ControlPoint(Node):
+    contextName = "Pipe"
+    def __init__(self,x,y,z, **kwargs):
+        super(ControlPoint, self).__init__(**kwargs)
+        self.setPos(x,y)
+
+    def boundingRect(self):
+        '''Return the bounding box of the item'''
+        _cp = QtCore.QPointF()
+        _size = QtCore.QSizeF(self.parentItem().outerRadius+1,self.parentItem().outerRadius+1)
+        return QtCore.QRectF(_cp,_size)
+
+    def paint(self, painter, option, widget):
+        pass
 
 class Pipe(Node):
     contextName = "Pipe"
     def __init__(self, **kwargs):
-        #Harvest kwargs and then pass on
-        self.x1 = kwargs.get("x1",0.0)
-        self.y1 = kwargs.get("y1",0.0)
-        self.z1 = kwargs.get("z1",0.0)
-        self.x2 = kwargs.get("x2",0.0)
-        self.y2 = kwargs.get("y2",0.0)
-        self.z2 = kwargs.get("z2",0.0)
+        super(Pipe, self).__init__()
         self.outerRadius = kwargs.get("outerRadius",5)
         self.innerRadius = kwargs.get("innerRadius",5)
-        super(Pipe, self).__init__(**kwargs)
-        #You can now change inherited things
-        self.fillColor = QtGui.QColor("#778ab5")
+        self.fillColor = self.baseColor = QtGui.QColor("#778ab5")
+        for point in kwargs.get("points",5):
+            x,y,z = point
+            _pItem = ControlPoint(x,y,z)
+            _pItem.setParentItem(self)
 
     def boundingRect(self):
-        '''Return the bounding box of the item'''
-        return QtCore.QRectF(self.x1,self.y1,self.x2-self.x1,self.y2-self.y1)
-        
+        return self.childrenBoundingRect()
+      
     def paint(self, painter, option, widget):
         """Draw the Node's container rectangle."""
-        painter.setBrush(QtGui.QBrush(self.fillColor))
-        painter.setPen(QtGui.QPen(self.fillColor,self.outerRadius))
+        if len(self.childItems()) > 1:
+            _color = self.fillColor
+            _colorShadow = self.fillColor.darker(240)
+            _size = self.outerRadius+1
+            controlPoints = self.childItems()
 
-        bbox = self.boundingRect()
-        painter.drawEllipse(QtCore.QPointF(self.x1,self.y1),self.outerRadius+1,self.outerRadius+1)    
-        painter.drawLine(self.x1,self.y1,self.x2,self.y2)
-        painter.drawEllipse(QtCore.QPointF(self.x2,self.y2),self.outerRadius+1,self.outerRadius+1)        
+            #Draw drop shadow
+            if self.scene().shadows:
+                painter.setBrush(QtGui.QBrush(_colorShadow))
+                painter.setPen(QtGui.QPen(_colorShadow,self.outerRadius))
+                painter.setOpacity(self.scene().opacity)
+                for i in range(len(controlPoints)-1):
+                    x1 = controlPoints[i].pos().x()+2
+                    y1 = controlPoints[i].pos().y()+3
+                    x2 = controlPoints[i+1].pos().x()+2
+                    y2 = controlPoints[i+1].pos().y()+3
+
+                    painter.drawEllipse(QtCore.QPointF(x1,y1),_size,_size)
+                    painter.drawEllipse(QtCore.QPointF(x2,y2),_size,_size)
+                    painter.drawLine(x1,y1,x2,y2)
+            #Draw object
+            painter.setBrush(QtGui.QBrush(_color))
+            painter.setPen(QtGui.QPen(_color,self.outerRadius))
+            for i in range(len(controlPoints)-1):
+                x1 = controlPoints[i].pos().x()
+                y1 = controlPoints[i].pos().y()
+                x2 = controlPoints[i+1].pos().x()
+                y2 = controlPoints[i+1].pos().y()
+
+                painter.drawEllipse(QtCore.QPointF(x1,y1),_size,_size)
+                painter.drawEllipse(QtCore.QPointF(x2,y2),_size,_size)
+                painter.drawLine(x1,y1,x2,y2)

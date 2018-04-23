@@ -33,6 +33,7 @@ class GridView(QtWidgets.QGraphicsView):
         
         self.gridOn = True
         self.origin = True
+        self.Alt_Key = False
 
     def drawBackground(self, painter, rect):
         painter.setBrush(QtGui.QBrush(self.fillColor))
@@ -105,3 +106,15 @@ class GridView(QtWidgets.QGraphicsView):
             self.panning = False
             self.setCursor(QtCore.Qt.ArrowCursor)
         super(GridView, self).mouseReleaseEvent(event)
+
+    def keyPressEvent(self, event):
+        """Trigger a redraw of Edges to update their color."""
+        if event.key() == QtCore.Qt.Key_Alt:
+            self.Alt_Key = True
+        super(GridView, self).keyPressEvent(event)
+
+    def keyReleaseEvent(self, event):
+        """Trigger a redraw of Edges to update their color."""
+        if event.key() == QtCore.Qt.Key_Alt:
+            self.Alt_Key = False
+        super(GridView, self).keyReleaseEvent(event)
