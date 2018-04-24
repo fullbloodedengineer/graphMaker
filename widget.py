@@ -6,7 +6,7 @@ import helpers
 import component as c
 import os
 
-class BuilderSpace(QtWidgets.QWidget):
+class BuilderSpace(QtWidgets.QMainWindow):
     def __init__(self,parent=None):
         super(BuilderSpace, self).__init__(parent=parent)
         self.scene = QtWidgets.QGraphicsScene()
@@ -18,9 +18,24 @@ class BuilderSpace(QtWidgets.QWidget):
         self.view.setViewportUpdateMode(
             QtWidgets.QGraphicsView.FullViewportUpdate)
 
-        layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(self.view)
-        self.setLayout(layout)
+        centralwidget = QtWidgets.QWidget(self)
+        horizontalLayout = QtWidgets.QHBoxLayout()
+
+        centralwidget.setLayout(horizontalLayout)
+        dockWidget = QtWidgets.QDockWidget()
+        dockWidgetContents = QtWidgets.QWidget()
+        verticalLayout = QtWidgets.QVBoxLayout()
+        tabWidget = QtWidgets.QTabWidget()
+        tab = QtWidgets.QWidget()
+        tabWidget.addTab(tab,'Items')
+        verticalLayout.addWidget(tabWidget)
+        sortClass = QtWidgets.QComboBox()
+        verticalLayout.addWidget(sortClass)
+        dockWidgetContents.setLayout(verticalLayout)
+        dockWidget.setWidget(dockWidgetContents);
+        self.addDockWidget(QtCore.Qt.DockWidgetArea(1),dockWidget);
+        horizontalLayout.addWidget(self.view)
+        self.setCentralWidget(centralwidget)
 
         self.moveableItems = False
         self.currentNode = None

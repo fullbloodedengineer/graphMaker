@@ -20,6 +20,18 @@ class Node(QtWidgets.QGraphicsItem):
         self.setAcceptTouchEvents(True)
         self.setAcceptDrops(True)
 
+        #self.setContextMenuPolicy(QtWidgets.Qt.CustomContextMenu)
+        #self.connect(self,SIGNAL('customContextMenuRequested(QPoint)'), self.contextMenu)
+
+    def contextMenuEvent(self, event):
+        #import time
+        """Show a menu to create registered Nodes."""
+        menu = QtWidgets.QMenu()
+        openFileAction = menu.addAction("Test")
+        #openFileAction.triggered.connect(time.time)
+        menu.exec_(event.screenPos())
+        super(Node, self).contextMenuEvent(event)
+
     def mouseClickEvent(self, event):
         '''A placeholder overload'''
         print "Click..."
@@ -111,7 +123,19 @@ class Pipe(Node):
 
     def boundingRect(self):
         return self.childrenBoundingRect()
-      
+
+    def shape(self):
+        controlPoints = self.childItems()
+        path = QtGui.QPainterPath()
+        for i in range(len(controlPoints)-1):
+            x1 = controlPoints[i].pos().x()
+            y1 = controlPoints[i].pos().y()
+            x2 = controlPoints[i+1].pos().x()
+            y2 = controlPoints[i+1].pos().y()
+            path.moveTo(x1,y1)               
+            path.lineTo(x2,y2)
+        return path
+  
     def paint(self, painter, option, widget):
         """Draw the Node's container rectangle."""
         if len(self.childItems()) > 1:
@@ -120,8 +144,10 @@ class Pipe(Node):
             _size = self.outerRadius+1
             controlPoints = self.childItems()
 
+            path = QtGui.QPainterPath()
             #Draw drop shadow
             if self.scene().shadows:
+                pathShadow = QtGui.QPainterPath()
                 painter.setBrush(QtGui.QBrush(_colorShadow))
                 painter.setPen(QtGui.QPen(_colorShadow,self.outerRadius))
                 painter.setOpacity(self.scene().opacity)
@@ -133,7 +159,11 @@ class Pipe(Node):
 
                     painter.drawEllipse(QtCore.QPointF(x1,y1),_size,_size)
                     painter.drawEllipse(QtCore.QPointF(x2,y2),_size,_size)
-                    painter.drawLine(x1,y1,x2,y2)
+                    #painter.drawLine(x1,y1,x2,y2)
+                    pathShadow.moveTo(x1,y1)               
+                    pathShadow.lineTo(x2,y2)
+            painter.drawPath(pathShadow)
+                    
             #Draw object
             painter.setBrush(QtGui.QBrush(_color))
             painter.setPen(QtGui.QPen(_color,self.outerRadius))
@@ -145,4 +175,4 @@ class Pipe(Node):
 
                 painter.drawEllipse(QtCore.QPointF(x1,y1),_size,_size)
                 painter.drawEllipse(QtCore.QPointF(x2,y2),_size,_size)
-                painter.drawLine(x1,y1,x2,y2)
+            painter.drawPath(self.shape())
